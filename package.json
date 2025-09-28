@@ -6,10 +6,12 @@
   "scripts": {
     "dev": "vite build --watch --mode development",
     "build": "vite build --mode production",
+    "build:watch": "vite build --watch --mode development",
     "test": "jest",
     "test:e2e": "playwright test",
     "serve:mocks": "http-server tests/e2e/mock-sites -p 3000 -c-1",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "reload": "echo 'Extension reloaded! Please refresh the extension in Chrome.'"
   },
   "dependencies": {
     "react": "^18.2.0",

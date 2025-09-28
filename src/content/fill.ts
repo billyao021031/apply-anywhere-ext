@@ -114,10 +114,47 @@ export function fillElement(
 }
 
 /**
+ * Fill file input with base64 data
+ */
+export function fillFileElement(element: HTMLInputElement, base64Data: string, fileName: string): void {
+  if (element.type !== 'file' || !base64Data) return;
+  
+  try {
+    // Convert base64 to blob
+    const byteCharacters = atob(base64Data.split(',')[1]);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: 'application/pdf' });
+    
+    // Create file from blob
+    const file = new File([blob], fileName, { type: 'application/pdf' });
+    
+    // Create DataTransfer and set files
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    element.files = dataTransfer.files;
+    
+    // Dispatch change event
+    element.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
+  } catch (error) {
+    console.warn('Failed to fill file input:', error);
+  }
+}
+
+/**
  * Fill multiple elements from field proposals
  */
 export function fillElements(proposals: Array<{ element: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement; proposedValue: string }>): void {
   proposals.forEach(({ element, proposedValue }) => {
-    fillElement(element, proposedValue);
+    if (element.type === 'file' && proposedValue.startsWith('data:')) {
+      // Handle file uploads
+      const fileName = 'resume.pdf'; // Default filename
+      fillFileElement(element as HTMLInputElement, proposedValue, fileName);
+    } else {
+      fillElement(element, proposedValue);
+    }
   });
 }

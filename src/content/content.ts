@@ -4,29 +4,30 @@ import { createFieldProposals } from './matcher';
 import { createConfirmationPanel, showNotification } from './panel';
 import { fillElements } from './fill';
 import { detectSite, applySiteTweaks, getSiteDelay } from './adapters';
+import { loadEncryptedProfile } from './crypto';
 
-// Hardcoded profile for initial testing
-const TEST_PROFILE: Profile = {
+// Default profile fallback
+const DEFAULT_PROFILE: Profile = {
   personal: {
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john.doe@example.com',
-    phone: '+1 (555) 123-4567'
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: ''
   },
   workAuth: {
     needsSponsorship: false,
     authorizedToWork: true,
-    visaStatus: 'US Citizen'
+    visaStatus: ''
   },
   voluntary: {
-    gender: 'Prefer not to say',
-    race: 'Prefer not to say',
+    gender: '',
+    race: '',
     veteran: false,
     disability: false
   },
   documents: {
-    resume: 'resume.pdf',
-    coverLetter: 'cover_letter.pdf'
+    resume: '',
+    coverLetter: ''
   }
 };
 
@@ -55,6 +56,29 @@ async function main(): Promise<void> {
   try {
     console.log('Apply Anywhere: Starting content script');
     
+    // Load encrypted profile
+    let profile: Profile = DEFAULT_PROFILE;
+    try {
+      // Try to load from storage
+      const storedProfile = await chrome.storage.local.get(['encryptedProfile', 'currentProfile']);
+      if (storedProfile.currentProfile) {
+        // Use decrypted profile if available
+        profile = storedProfile.currentProfile;
+        console.log('Apply Anywhere: Loaded profile from storage');
+      } else if (storedProfile.encryptedProfile) {
+        // Profile exists but needs decryption
+        showNotification('Please open the extension popup to set up your profile first', 'info');
+        return;
+      } else {
+        showNotification('Please set up your profile in the extension popup first', 'info');
+        return;
+      }
+    } catch (error) {
+      console.log('Apply Anywhere: No profile found, using default');
+      showNotification('Please set up your profile in the extension popup first', 'info');
+      return;
+    }
+    
     // Detect the site type
     const siteType = detectSite();
     console.log('Apply Anywhere: Detected site type:', siteType);
@@ -74,7 +98,7 @@ async function main(): Promise<void> {
     }
     
     // Convert profile to canonical map
-    const canonicalMap = profileToCanonicalMap(TEST_PROFILE);
+    const canonicalMap = profileToCanonicalMap(profile);
     
     // Create field proposals
     let proposals = createFieldProposals(elements, canonicalMap);

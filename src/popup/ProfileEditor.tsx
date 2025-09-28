@@ -37,6 +37,16 @@ export const ProfileEditor: React.FC = () => {
     setTimeout(() => setMessage(null), 3000);
   };
 
+  const handleFileUpload = (field: 'resume' | 'coverLetter', file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64 = e.target?.result as string;
+      updateProfile('documents', field, base64);
+      showMessage(`${field === 'resume' ? 'Resume' : 'Cover Letter'} uploaded successfully!`, 'success');
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSave = async () => {
     if (!passphrase) {
       showMessage('Please enter a passphrase', 'error');
@@ -51,6 +61,10 @@ export const ProfileEditor: React.FC = () => {
     setIsLoading(true);
     try {
       await saveEncryptedProfile(profile, passphrase);
+      
+      // Store decrypted profile for content script to use
+      await chrome.storage.local.set({ currentProfile: profile });
+      
       showMessage('Profile saved successfully!', 'success');
     } catch (error) {
       showMessage('Failed to save profile', 'error');
@@ -70,6 +84,10 @@ export const ProfileEditor: React.FC = () => {
     try {
       const loadedProfile = await loadEncryptedProfile(passphrase);
       setProfile(loadedProfile);
+      
+      // Store decrypted profile for content script to use
+      await chrome.storage.local.set({ currentProfile: loadedProfile });
+      
       showMessage('Profile loaded successfully!', 'success');
     } catch (error) {
       showMessage('Failed to load profile. Check your passphrase.', 'error');
@@ -222,6 +240,44 @@ export const ProfileEditor: React.FC = () => {
           onChange={(e) => updateProfile('workAuth', 'visaStatus', e.target.value)}
           style={inputStyle}
         />
+      </div>
+
+      <div style={{ marginBottom: '20px' }}>
+        <h3 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>Documents</h3>
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Resume</label>
+          <input
+            type="file"
+            accept=".pdf,.doc,.docx"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleFileUpload('resume', file);
+            }}
+            style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+          />
+          {profile.documents.resume && (
+            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+              ✓ Resume uploaded ({Math.round(profile.documents.resume.length / 1024)}KB)
+            </div>
+          )}
+        </div>
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Cover Letter (Optional)</label>
+          <input
+            type="file"
+            accept=".pdf,.doc,.docx"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleFileUpload('coverLetter', file);
+            }}
+            style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+          />
+          {profile.documents.coverLetter && (
+            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+              ✓ Cover Letter uploaded ({Math.round(profile.documents.coverLetter.length / 1024)}KB)
+            </div>
+          )}
+        </div>
       </div>
 
       <div style={{ marginBottom: '20px' }}>
