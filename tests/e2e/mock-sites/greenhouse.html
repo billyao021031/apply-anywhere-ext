@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Greenhouse Mock Application</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .field {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .required {
+            color: red;
+        }
+        .work-auth-section {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Job Application - Software Engineer</h1>
+    <p>Please fill out the form below to apply for this position.</p>
+
+    <div class="form-section">
+        <h2>Personal Information</h2>
+        
+        <div class="field">
+            <label for="first_name">First Name <span class="required">*</span></label>
+            <input type="text" id="first_name" name="first_name" required>
+        </div>
+        
+        <div class="field">
+            <label for="last_name">Last Name <span class="required">*</span></label>
+            <input type="text" id="last_name" name="last_name" required>
+        </div>
+        
+        <div class="field">
+            <label for="email">Email Address <span class="required">*</span></label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        
+        <div class="field">
+            <label for="phone">Phone Number</label>
+            <input type="tel" id="phone" name="phone">
+        </div>
+    </div>
+
+    <div class="form-section">
+        <h2>Work Authorization</h2>
+        
+        <div class="work-auth-section">
+            <div class="field">
+                <label>
+                    <input type="checkbox" name="authorized_to_work" value="yes">
+                    I am authorized to work in the United States
+                </label>
+            </div>
+            
+            <div class="field">
+                <label>
+                    <input type="checkbox" name="needs_sponsorship" value="yes">
+                    I will require visa sponsorship now or in the future
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-section">
+        <h2>Voluntary Disclosures</h2>
+        <p>This information is voluntary and will not affect your application.</p>
+        
+        <div class="field">
+            <label for="gender">Gender</label>
+            <select id="gender" name="gender">
+                <option value="">Prefer not to say</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Non-binary">Non-binary</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        
+        <div class="field">
+            <label for="race">Race/Ethnicity</label>
+            <select id="race" name="race">
+                <option value="">Prefer not to say</option>
+                <option value="American Indian or Alaska Native">American Indian or Alaska Native</option>
+                <option value="Asian">Asian</option>
+                <option value="Black or African American">Black or African American</option>
+                <option value="Hispanic or Latino">Hispanic or Latino</option>
+                <option value="Native Hawaiian or Other Pacific Islander">Native Hawaiian or Other Pacific Islander</option>
+                <option value="White">White</option>
+                <option value="Two or more races">Two or more races</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-section">
+        <h2>Additional Information</h2>
+        
+        <div class="field">
+            <label for="cover_letter">Cover Letter</label>
+            <textarea id="cover_letter" name="cover_letter" rows="5" placeholder="Tell us why you're interested in this position..."></textarea>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <button type="submit" style="background-color: #007bff; color: white; padding: 12px 24px; border: none; border-radius: 4px; font-size: 16px; cursor: pointer;">
+            Submit Application
+        </button>
+    </div>
+
+    <script>
+        // Simulate form submission
+        document.querySelector('button[type="submit"]').addEventListener('click', function(e) {
+            e.preventDefault();
+            alert('Form submitted! (This is a mock page)');
+        });
+    </script>
+</body>
+</html>

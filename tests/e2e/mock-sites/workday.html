@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workday Mock Application</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .workday-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .css-1, .css-2 {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .form-field {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .required {
+            color: #d32f2f;
+        }
+        .submit-button {
+            background-color: #0073b1;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .loading {
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="workday-container">
+        <h1>Workday Application Portal</h1>
+        <p>Please complete the following information to apply for this position.</p>
+        
+        <!-- Simulate dynamic loading -->
+        <div id="loading-indicator" style="text-align: center; padding: 20px;">
+            Loading application form...
+        </div>
+        
+        <div id="form-content" style="display: none;">
+            <div class="css-1" data-automation-id="personal-info-section">
+                <h2>Personal Information</h2>
+                
+                <div class="form-field">
+                    <label for="firstName">First Name <span class="required">*</span></label>
+                    <input type="text" id="firstName" name="firstName" data-automation-id="firstName" required>
+                </div>
+                
+                <div class="form-field">
+                    <label for="lastName">Last Name <span class="required">*</span></label>
+                    <input type="text" id="lastName" name="lastName" data-automation-id="lastName" required>
+                </div>
+                
+                <div class="form-field">
+                    <label for="email">Email Address <span class="required">*</span></label>
+                    <input type="email" id="email" name="email" data-automation-id="email" required>
+                </div>
+                
+                <div class="form-field">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" data-automation-id="phone">
+                </div>
+            </div>
+            
+            <div class="css-2" data-automation-id="work-auth-section">
+                <h2>Work Authorization</h2>
+                
+                <div class="form-field">
+                    <label>
+                        <input type="checkbox" name="authorizedToWork" data-automation-id="authorizedToWork">
+                        I am authorized to work in the United States
+                    </label>
+                </div>
+                
+                <div class="form-field">
+                    <label>
+                        <input type="checkbox" name="needsSponsorship" data-automation-id="needsSponsorship">
+                        I will require visa sponsorship
+                    </label>
+                </div>
+            </div>
+            
+            <div class="css-1" data-automation-id="demographics-section">
+                <h2>Voluntary Self-Identification</h2>
+                <p>This information is voluntary and will not affect your application.</p>
+                
+                <div class="form-field">
+                    <label for="gender">Gender Identity</label>
+                    <select id="gender" name="gender" data-automation-id="gender">
+                        <option value="">Prefer not to answer</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Non-binary">Non-binary</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-field">
+                    <label for="race">Race/Ethnicity</label>
+                    <select id="race" name="race" data-automation-id="race">
+                        <option value="">Prefer not to answer</option>
+                        <option value="American Indian or Alaska Native">American Indian or Alaska Native</option>
+                        <option value="Asian">Asian</option>
+                        <option value="Black or African American">Black or African American</option>
+                        <option value="Hispanic or Latino">Hispanic or Latino</option>
+                        <option value="Native Hawaiian or Other Pacific Islander">Native Hawaiian or Other Pacific Islander</option>
+                        <option value="White">White</option>
+                        <option value="Two or more races">Two or more races</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button type="submit" class="submit-button">Submit Application</button>
+        </div>
+    </div>
+
+    <script>
+        // Simulate dynamic loading with delay
+        setTimeout(() => {
+            document.getElementById('loading-indicator').style.display = 'none';
+            document.getElementById('form-content').style.display = 'block';
+        }, 1500);
+        
+        // Simulate form submission
+        document.querySelector('.submit-button').addEventListener('click', function(e) {
+            e.preventDefault();
+            alert('Application submitted! (This is a mock Workday application)');
+        });
+    </script>
+</body>
+</html>
