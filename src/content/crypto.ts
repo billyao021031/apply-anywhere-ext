@@ -107,7 +107,13 @@ export async function decryptProfile(encryptedData: Uint8Array, passphrase: stri
  * Convert Uint8Array to base64 string for storage
  */
 export function arrayToBase64(array: Uint8Array): string {
-  return btoa(String.fromCharCode(...array));
+  const chunkSize = 0x800; // keep spreads small to avoid stack issues
+  const chunks: string[] = [];
+  for (let i = 0; i < array.length; i += chunkSize) {
+    const chunk = array.subarray(i, i + chunkSize);
+    chunks.push(String.fromCharCode(...chunk));
+  }
+  return btoa(chunks.join(''));
 }
 
 /**
@@ -115,7 +121,11 @@ export function arrayToBase64(array: Uint8Array): string {
  */
 export function base64ToArray(base64: string): Uint8Array {
   const binaryString = atob(base64);
-  return new Uint8Array(binaryString.length).map((_, i) => binaryString.charCodeAt(i));
+  const result = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    result[i] = binaryString.charCodeAt(i);
+  }
+  return result;
 }
 
 /**
@@ -209,5 +219,5 @@ export async function loadEncryptedProfile(passphrase: string): Promise<any> {
  * Clear stored profile data
  */
 export async function clearStoredProfile(): Promise<void> {
-  await chrome.storage.local.remove(['encryptedProfile', 'profileTimestamp']);
+  await chrome.storage.local.remove(['encryptedProfile', 'profileTimestamp', 'currentProfile']);
 }

@@ -31,6 +31,9 @@ const DEFAULT_PROFILE: Profile = {
   }
 };
 
+let isProcessing = false;
+let rerunRequested = false;
+
 /**
  * Convert profile to canonical map for matching
  */
@@ -53,6 +56,14 @@ function profileToCanonicalMap(profile: Profile): CanonicalMap {
  * Main orchestrator function
  */
 async function main(): Promise<void> {
+  if (isProcessing) {
+    rerunRequested = true;
+    console.log('Apply Anywhere: Autofill already running, queuing rerun');
+    return;
+  }
+
+  isProcessing = true;
+
   try {
     console.log('Apply Anywhere: Starting content script');
     
@@ -140,6 +151,13 @@ async function main(): Promise<void> {
   } catch (error) {
     console.error('Apply Anywhere: Error in content script:', error);
     showNotification('Error occurred while analyzing form', 'error');
+  } finally {
+    isProcessing = false;
+    if (rerunRequested) {
+      rerunRequested = false;
+      console.log('Apply Anywhere: Running queued autofill pass');
+      await main();
+    }
   }
 }
 
@@ -160,3 +178,24 @@ new MutationObserver(() => {
     setTimeout(main, 1000); // Small delay for SPA navigation
   }
 }).observe(document, { subtree: true, childList: true });
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName !== 'local' || !changes.currentProfile) {
+    return;
+  }
+
+  const { newValue } = changes.currentProfile;
+  if (!newValue) {
+    console.log('Apply Anywhere: Profile removed from storage, skipping autofill');
+    return;
+  }
+
+  console.log('Apply Anywhere: Detected profile update, triggering autofill');
+
+  if (isProcessing) {
+    rerunRequested = true;
+    return;
+  }
+
+  void main();
+});

@@ -82,7 +82,7 @@ export function createConfirmationPanel(
   });
 
   confirmBtn.addEventListener('click', () => {
-    const updatedProposals = getUpdatedProposals(panel);
+    const updatedProposals = getUpdatedProposals(panel, proposals);
     panel.remove();
     callbacks.onConfirm(updatedProposals);
   });
@@ -123,7 +123,11 @@ function createProposalRow(proposal: FieldProposal, index: number): string {
   const isDisabled = !proposal.editable;
   
   return `
-    <div style="margin-bottom: 12px; padding: 8px; border: 1px solid #e0e0e0; border-radius: 4px; background: ${isDisabled ? '#f5f5f5' : 'white'};">
+    <div 
+      class="apply-anywhere-proposal"
+      data-proposal-index="${index}"
+      style="margin-bottom: 12px; padding: 8px; border: 1px solid #e0e0e0; border-radius: 4px; background: ${isDisabled ? '#f5f5f5' : 'white'};"
+    >
       <label for="${inputId}" style="display: block; margin-bottom: 4px; font-weight: 500; color: #333;">
         ${proposal.label}
         ${isDisabled ? ' (read-only)' : ''}
@@ -153,28 +157,28 @@ function createProposalRow(proposal: FieldProposal, index: number): string {
 /**
  * Get updated proposals from the panel inputs
  */
-function getUpdatedProposals(panel: HTMLElement): FieldProposal[] {
+function getUpdatedProposals(panel: HTMLElement, originalProposals: FieldProposal[]): FieldProposal[] {
   const proposals: FieldProposal[] = [];
   const inputs = panel.querySelectorAll('input[type="text"]') as NodeListOf<HTMLInputElement>;
   
-  inputs.forEach((input, index) => {
-    const originalValue = input.getAttribute('data-original-value') || '';
+  inputs.forEach((input) => {
     const currentValue = input.value;
-    
-    // Find the original proposal by index
-    const proposalContainer = input.closest('div');
-    if (proposalContainer) {
-      const keyElement = proposalContainer.querySelector('div:last-child');
-      const key = keyElement?.textContent?.replace('Key: ', '') || '';
-      
-      proposals.push({
-        element: input as any, // This will be replaced by the actual element
-        key,
-        label: input.previousElementSibling?.textContent?.replace(' (read-only)', '') || '',
-        proposedValue: currentValue,
-        editable: !input.disabled
-      });
-    }
+    const proposalContainer = input.closest('.apply-anywhere-proposal') as HTMLElement | null;
+    if (!proposalContainer) return;
+
+    const indexAttr = proposalContainer.dataset.proposalIndex;
+    if (typeof indexAttr === 'undefined') return;
+
+    const original = originalProposals[Number(indexAttr)];
+    if (!original) return;
+
+    proposals.push({
+      element: original.element,
+      key: original.key,
+      label: original.label,
+      proposedValue: currentValue,
+      editable: original.editable
+    });
   });
   
   return proposals;
