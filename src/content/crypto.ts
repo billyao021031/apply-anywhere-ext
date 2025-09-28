@@ -47,6 +47,11 @@ function generateIV(): Uint8Array {
  */
 export async function encryptProfile(profile: any, passphrase: string): Promise<Uint8Array> {
   try {
+    // Check if crypto.subtle is available
+    if (!crypto.subtle) {
+      throw new Error('Web Crypto API not available');
+    }
+    
     const salt = generateSalt();
     const iv = generateIV();
     const key = await deriveKey(passphrase, salt);
@@ -69,7 +74,7 @@ export async function encryptProfile(profile: any, passphrase: string): Promise<
     return result;
   } catch (error) {
     console.error('Encryption failed:', error);
-    throw new Error('Failed to encrypt profile data');
+    throw new Error(`Failed to encrypt profile data: ${error.message}`);
   }
 }
 
@@ -114,17 +119,60 @@ export function base64ToArray(base64: string): Uint8Array {
 }
 
 /**
+ * Simple fallback encryption (not as secure but works everywhere)
+ */
+function simpleEncrypt(data: string, password: string): string {
+  let encrypted = '';
+  for (let i = 0; i < data.length; i++) {
+    const charCode = data.charCodeAt(i) ^ password.charCodeAt(i % password.length);
+    encrypted += String.fromCharCode(charCode);
+  }
+  return btoa(encrypted);
+}
+
+/**
+ * Simple fallback decryption
+ */
+function simpleDecrypt(encryptedData: string, password: string): string {
+  try {
+    const data = atob(encryptedData);
+    let decrypted = '';
+    for (let i = 0; i < data.length; i++) {
+      const charCode = data.charCodeAt(i) ^ password.charCodeAt(i % password.length);
+      decrypted += String.fromCharCode(charCode);
+    }
+    return decrypted;
+  } catch (error) {
+    throw new Error('Failed to decrypt data');
+  }
+}
+
+/**
  * Save encrypted profile to chrome.storage.local
  */
 export async function saveEncryptedProfile(profile: any, passphrase: string): Promise<void> {
   try {
-    const encryptedData = await encryptProfile(profile, passphrase);
-    const base64Data = arrayToBase64(encryptedData);
-    
-    await chrome.storage.local.set({
-      encryptedProfile: base64Data,
-      profileTimestamp: Date.now()
-    });
+    // Try Web Crypto API first
+    if (crypto.subtle) {
+      const encryptedData = await encryptProfile(profile, passphrase);
+      const base64Data = arrayToBase64(encryptedData);
+      
+      await chrome.storage.local.set({
+        encryptedProfile: base64Data,
+        profileTimestamp: Date.now(),
+        encryptionMethod: 'webcrypto'
+      });
+    } else {
+      // Fallback to simple encryption
+      const jsonString = JSON.stringify(profile);
+      const encryptedData = simpleEncrypt(jsonString, passphrase);
+      
+      await chrome.storage.local.set({
+        encryptedProfile: encryptedData,
+        profileTimestamp: Date.now(),
+        encryptionMethod: 'simple'
+      });
+    }
   } catch (error) {
     console.error('Failed to save profile:', error);
     throw error;
@@ -136,14 +184,21 @@ export async function saveEncryptedProfile(profile: any, passphrase: string): Pr
  */
 export async function loadEncryptedProfile(passphrase: string): Promise<any> {
   try {
-    const result = await chrome.storage.local.get(['encryptedProfile']);
+    const result = await chrome.storage.local.get(['encryptedProfile', 'encryptionMethod']);
     
     if (!result.encryptedProfile) {
       throw new Error('No encrypted profile found');
     }
     
-    const encryptedData = base64ToArray(result.encryptedProfile);
-    return await decryptProfile(encryptedData, passphrase);
+    if (result.encryptionMethod === 'simple') {
+      // Use simple decryption
+      const decryptedString = simpleDecrypt(result.encryptedProfile, passphrase);
+      return JSON.parse(decryptedString);
+    } else {
+      // Use Web Crypto API decryption
+      const encryptedData = base64ToArray(result.encryptedProfile);
+      return await decryptProfile(encryptedData, passphrase);
+    }
   } catch (error) {
     console.error('Failed to load profile:', error);
     throw error;

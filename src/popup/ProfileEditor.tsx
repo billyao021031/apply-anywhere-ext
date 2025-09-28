@@ -31,6 +31,27 @@ export const ProfileEditor: React.FC = () => {
   const [confirmPassphrase, setConfirmPassphrase] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [profileLoaded, setProfileLoaded] = useState(false);
+
+  // Auto-load profile when component mounts
+  useEffect(() => {
+    loadStoredProfile();
+  }, []);
+
+  const loadStoredProfile = async () => {
+    try {
+      const result = await chrome.storage.local.get(['currentProfile', 'encryptedProfile']);
+      if (result.currentProfile) {
+        setProfile(result.currentProfile);
+        setProfileLoaded(true);
+        console.log('Profile loaded automatically');
+      } else if (result.encryptedProfile) {
+        showMessage('Profile found but needs passphrase to decrypt', 'info');
+      }
+    } catch (error) {
+      console.log('No stored profile found');
+    }
+  };
 
   const showMessage = (text: string, type: 'success' | 'error' | 'info') => {
     setMessage({ text, type });
@@ -58,17 +79,24 @@ export const ProfileEditor: React.FC = () => {
       return;
     }
 
+    if (passphrase.length < 4) {
+      showMessage('Passphrase must be at least 4 characters', 'error');
+      return;
+    }
+
     setIsLoading(true);
     try {
+      console.log('Saving profile...', profile);
       await saveEncryptedProfile(profile, passphrase);
       
       // Store decrypted profile for content script to use
       await chrome.storage.local.set({ currentProfile: profile });
+      setProfileLoaded(true);
       
       showMessage('Profile saved successfully!', 'success');
     } catch (error) {
-      showMessage('Failed to save profile', 'error');
       console.error('Save error:', error);
+      showMessage(`Failed to save profile: ${error.message}`, 'error');
     } finally {
       setIsLoading(false);
     }
@@ -87,6 +115,7 @@ export const ProfileEditor: React.FC = () => {
       
       // Store decrypted profile for content script to use
       await chrome.storage.local.set({ currentProfile: loadedProfile });
+      setProfileLoaded(true);
       
       showMessage('Profile loaded successfully!', 'success');
     } catch (error) {
@@ -165,6 +194,18 @@ export const ProfileEditor: React.FC = () => {
 
   return (
     <div>
+      <div style={{ 
+        marginBottom: '15px', 
+        padding: '8px', 
+        borderRadius: '4px', 
+        backgroundColor: profileLoaded ? '#d4edda' : '#f8d7da',
+        color: profileLoaded ? '#155724' : '#721c24',
+        fontSize: '12px',
+        textAlign: 'center'
+      }}>
+        {profileLoaded ? '✓ Profile Loaded - Ready to fill job applications!' : '⚠ No Profile Loaded - Please set up your profile first'}
+      </div>
+      
       {message && (
         <div style={{
           padding: '8px',

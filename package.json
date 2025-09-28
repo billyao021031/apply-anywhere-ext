@@ -11,7 +11,8 @@
     "test:e2e": "playwright test",
     "serve:mocks": "http-server tests/e2e/mock-sites -p 3000 -c-1",
     "type-check": "tsc --noEmit",
-    "reload": "echo 'Extension reloaded! Please refresh the extension in Chrome.'"
+    "reload": "echo 'Extension reloaded! Please refresh the extension in Chrome.'",
+    "dev:watch": "npm run build:watch & node auto-reload.js"
   },
   "dependencies": {
     "react": "^18.2.0",
